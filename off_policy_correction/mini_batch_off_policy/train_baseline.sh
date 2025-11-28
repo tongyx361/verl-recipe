@@ -5,7 +5,7 @@ CLUSTER_DATA_HOME=${CLUSTER_RO_DATA_HOME:-"${HOME}/verl"}
 
 # Data
 
-TRAIN_FILES=${TRAIN_FILES:-"${CLUSTER_DATA_HOME}/data/dapo_filter/train.parquet"}
+TRAIN_FILE=${TRAIN_FILE:-"${CLUSTER_DATA_HOME}/data/dapo_filter/train.parquet"}
 TRAIN_DATA_URL=${TRAIN_DATA_URL:-"https://huggingface.co/datasets/aaabiao/dapo_filter/resolve/main/train.parquet?download=true"}
 TEST_DATA_HOME=${TEST_DATA_HOME:-"${CLUSTER_DATA_HOME}/data/off-policy-correction"}
 TEST_FILES=${TEST_FILES:-"[${TEST_DATA_HOME}/aime24.parquet,${TEST_DATA_HOME}/aime25.parquet]"}
@@ -58,15 +58,17 @@ MAX_NUM_BATCHED_TOKENS=${MAX_NUM_BATCHED_TOKENS:-"10216"}
 
 # Download data
 
-if [ ! -f "${TRAIN_FILES}" ]; then
-    mkdir -p "$(dirname "${TRAIN_FILES}")"
-    wget "${TRAIN_DATA_URL}" -O "${TRAIN_FILES}"
+if [ ! -f "${TRAIN_FILE}" ]; then
+    PROXY_URL=${PROXY_URL:-""}
+    [ -n "${PROXY_URL}" ] && export https_proxy="${PROXY_URL}"
+    mkdir -p "$(dirname "${TRAIN_FILE}")" && wget "${TRAIN_DATA_URL}" -O "${TRAIN_FILE}"
+    unset https_proxy
 fi
 
 # Entrypoint command to submit to the cluster
 
 python3 -m verl.trainer.main_ppo \
-    data.train_files="${TRAIN_FILES}" \
+    data.train_files="${TRAIN_FILE}" \
     data.val_files="${TEST_FILES}" \
     data.max_prompt_length="${max_prompt_length}" \
     data.max_response_length="${max_response_length}" \
