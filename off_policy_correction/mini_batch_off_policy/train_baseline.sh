@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -xeuo pipefail
 
+proejct_name="off-policy-correction"
+experiment_name="qwen3-14b-base-dapo-filter-baseline"
+
+# Paths
+
 CLUSTER_DATA_HOME=${CLUSTER_RO_DATA_HOME:-"${HOME}/verl"}
 
 # Data
@@ -14,6 +19,11 @@ TEST_FILES=${TEST_FILES:-"[${TEST_DATA_HOME}/aime24.parquet,${TEST_DATA_HOME}/ai
 
 MODEL_HOME=${MODEL_HOME:-"${CLUSTER_DATA_HOME}/model"}
 MODEL_PATH=${MODEL_PATH:-"${MODEL_HOME}/Qwen3-14B-Base"}
+
+# Project
+
+CHECKPOINT_HOME=${CHECKPOINT_HOME:-"${CLUSTER_DATA_HOME}/${proejct_name}/checkpoints/${experiment_name}"}
+
 
 # Rollout Correction
 
@@ -126,6 +136,7 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.rollout.max_num_batched_tokens="${MAX_NUM_BATCHED_TOKENS}" \
     trainer.balance_batch="false" \
     trainer.log_val_generations=10 \
+    trainer.default_local_dir="${CHECKPOINT_HOME}" \
     trainer.max_actor_ckpt_to_keep=2 \
     trainer.save_freq=10 \
     trainer.test_freq=10 \
@@ -133,7 +144,7 @@ python3 -m verl.trainer.main_ppo \
     trainer.n_gpus_per_node=8 \
     trainer.nnodes=4 \
     trainer.logger='["console","wandb"]' \
-    trainer.project_name="rollout_corr_rloo_example" \
-    trainer.experiment_name="rloo_seq_is_pure" \
+    trainer.project_name="${proejct_name}" \
+    trainer.experiment_name="${experiment_name}" \
     trainer.total_epochs=1000
 
